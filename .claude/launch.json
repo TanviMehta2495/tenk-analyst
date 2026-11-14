@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "backend",
+      "runtimeExecutable": "env",
+      "runtimeArgs": ["ACCESS_CODE=local-test-code", "uv", "run", "python", "-m", "uvicorn", "backend.api:app", "--port", "8000"],
+      "port": 8000
+    },
+    {
+      "name": "frontend",
+      "runtimeExecutable": "env",
+      "runtimeArgs": ["ACCESS_CODE=local-test-code", "uv", "run", "python", "-m", "streamlit", "run", "frontend/app.py", "--server.port", "8501", "--server.headless", "true"],
+      "port": 8501
+    }
+  ]
+}

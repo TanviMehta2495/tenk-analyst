@@ -1,0 +1,51 @@
+# Render reads this file when you create a Blueprint (Render dashboard: New, then Blueprint).
+# "sync: false" means: Render asks you to type the value in the dashboard. Secrets never go in this file.
+services:
+  # 1. The back end (FastAPI)
+  - type: web
+    name: tenk-analyst-api
+    runtime: python
+    plan: free
+    region: ohio                 # close to Neon (AWS US East 2)
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn backend.api:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.8"
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: QDRANT_URL
+        sync: false
+      - key: QDRANT_API_KEY
+        sync: false
+      - key: QDRANT_COLLECTION
+        sync: false              # the same collection name as in your .env (default: tenk)
+      - key: NEON_DATABASE_URL
+        sync: false
+      - key: SEC_USER_AGENT
+        sync: false
+      - key: LANGSMITH_TRACING
+        value: "true"
+      - key: LANGSMITH_API_KEY
+        sync: false              # a "Tracing Only" key is safest: it can send traces but not read them
+      - key: LANGSMITH_PROJECT
+        value: tenk-analyst
+      - key: ACCESS_CODE
+        sync: false              # must be the same value as on the front end
+
+  # 2. The front end (Streamlit)
+  - type: web
+    name: tenk-analyst-ui
+    runtime: python
+    plan: free
+    region: ohio
+    buildCommand: pip install -r requirements.txt
+    startCommand: streamlit run frontend/app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.8"
+      - key: API_URL
+        sync: false              # the back end's address, for example https://tenk-analyst-api.onrender.com
+      - key: ACCESS_CODE
+        sync: false              # must be the same value as on the back end
