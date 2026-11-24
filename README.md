@@ -1,8 +1,14 @@
 # 10-K Analyst
 
-A RAG agent that answers questions about the SEC 10-K filings of ten US auto companies, for fiscal years 2024 and 2025. It searches the filing text, reads exact numbers from SEC XBRL financial data, and cites a source for every answer. If the sources don't contain the answer, it says so. It never makes up a number.
+A RAG agent that answers questions about the SEC 10-K filings of ten US auto companies for fiscal years 2024 and 2025. It searches filing text and looks up reported figures in SEC XBRL data. The agent is designed to ground answers in retrieved evidence, cite its sources, and say when the requested information is unavailable.
 
 **Stack:** LangGraph · Qdrant · FlashRank · OpenRouter · FastAPI · Streamlit · Neon Postgres · LangSmith · Render
+
+**AI models**
+
+- LLM — Anthropic Claude Haiku 5.5 (`anthropic/claude-haiku-5.5` by default via OpenRouter)
+- Embeddings — OpenAI `text-embedding-3-small` via OpenRouter (1,536 dimensions)
+- Reranker — FlashRank with `ms-marco-TinyBERT-L-2-v2`
 
 <!-- Add a screenshot here: ![10-K Analyst answering a question](docs/screenshot.png) -->
 
@@ -37,20 +43,21 @@ The project is built in stages, and every stage stays available so you can compa
 
 ## Architecture
 
-```text
-Streamlit UI  ──HTTP──▶  FastAPI (/ask, /health)
-                            │
-                            ▼
-                    LangGraph pipelines / agent
-                     │         │          │
-                     ▼         ▼          ▼
-                  Qdrant    SEC XBRL    Neon Postgres
-               (10-K chunks) (numbers)  (chat memory)
-                     │
-              OpenRouter (LLM + embeddings)
+```mermaid
+flowchart TD
+    subgraph Render
+        UI["Streamlit UI"] -->|HTTP| API["FastAPI · /ask and /health"]
+        API --> Graph["LangGraph pipelines and agent"]
+    end
 
-LangSmith traces every run, tagged with the pipeline name and chat thread ID.
+    Graph -->|Filing retrieval| Qdrant["Qdrant · 10-K chunks"]
+    Graph -->|Reported figures| SEC["SEC XBRL · company facts"]
+    Graph -->|Agent conversation memory| Neon["Neon Postgres"]
+    Graph -->|LLM and query embeddings| OpenRouter["OpenRouter"]
+    Graph -.->|Workflow traces| LangSmith["LangSmith"]
 ```
+
+LangSmith records pipeline runs with the pipeline name and chat thread ID when tracing is enabled.
 
 ## Project layout
 
@@ -106,3 +113,9 @@ uv run pytest
 ## Deploy
 
 `render.yaml` defines two free Render web services: the FastAPI back end and the Streamlit front end. In Render, choose **New → Blueprint**, select this repo, and type in the secrets when Render asks for them. Secrets are never stored in the repo.
+
+Once the FastAPI service has a public Render URL, open the Streamlit service's **Environment** settings and set `API_URL` to that base URL (for example, `https://tenk-analyst-api.onrender.com`). Use the same `ACCESS_CODE` on both services and redeploy the frontend with the updated settings.
+
+## Project Context
+
+Developed as part of the Applied AI coursework at The University of Texas at Dallas, using Claude Code for assisted planning and implementation.
