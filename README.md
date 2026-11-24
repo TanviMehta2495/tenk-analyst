@@ -10,7 +10,8 @@ A RAG agent that answers questions about the SEC 10-K filings of ten US auto com
 - Embeddings — OpenAI `text-embedding-3-small` via OpenRouter (1,536 dimensions)
 - Reranker — FlashRank with `ms-marco-TinyBERT-L-2-v2`
 
-<!-- Add a screenshot here: ![10-K Analyst answering a question](docs/screenshot.png) -->
+<img width="693" height="392" alt="image" src="https://github.com/user-attachments/assets/7a3284c5-8117-4c1f-a0c5-ab0415242b3f" />
+
 
 ## What it covers
 
